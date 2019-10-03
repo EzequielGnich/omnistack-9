@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/EzequielGnich/omnistack-9#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mongoose": "^5.7.3",
+    "multer": "^1.4.2"
   },
   "devDependencies": {
     "nodemon": "^1.19.3"
