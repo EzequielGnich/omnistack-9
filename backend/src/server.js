@@ -1,8 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const app = express();
 const path = require("path");
+const socketio = require("socket.io");
+const http = require("http");
+
+const app = express();
+const server = http.Server(app);
+const io = socketio(server);
+
+const port = process.env.PORT || 3333;
+const routes = require("./routes");
 
 mongoose.connect(
   "mongodb+srv://omnistack:omnistack@cluster0-ux1ju.mongodb.net/omnistack9?retryWrites=true&w=majority",
@@ -12,9 +20,22 @@ mongoose.connect(
   }
 );
 
-const routes = require("./routes");
+// Não é a forma mais perfomatica de adicionar os usuarios logados no socket,
+// utilizar Redis
+const connectedUsers = {};
 
-const port = process.env.PORT || 3333;
+io.on("connection", socket => {
+  const { user_id } = socket.handshake.query;
+
+  connectedUsers[user_id] = socket.id;
+});
+
+app.use((req, res, next) => {
+  req.io = io;
+  req.connectedUsers = connectedUsers;
+
+  return next();
+});
 
 // req.query = acessar query params (para filtros)
 // req.params = acessar route params (para edição e delete)
@@ -26,7 +47,7 @@ app.use(express.json());
 app.use("/files", express.static(path.resolve(__dirname, "..", "uploads")));
 app.use(routes);
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server is running on port ${port}, 
   access link http://localhost:${port}`);
 });
